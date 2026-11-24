@@ -99,7 +99,7 @@ class AddWordActivity : AppCompatActivity() {
             tvTargetGroupInfo.text = "${group.name} ($count/$max 가득 참) · 새 그룹을 추가하세요"
             tvTargetGroupInfo.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
         } else {
-            tvTargetGroupInfo.text = "대상 그룹: ${group.name} ($count / $max단어 · ${max - count}개 가능)"
+            tvTargetGroupInfo.text = "대상 그룹: ${group.name} ($count / ${max}단어 · ${max - count}개 가능)"
             tvTargetGroupInfo.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
         }
     }
