@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootMain"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="18dp">
 
     <!-- 상단 헤더: 진행률 및 옵션 버튼 -->
     <LinearLayout
@@ -28,8 +29,9 @@
             android:id="@+id/btnTtsToggle"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="42dp"
             android:layout_marginEnd="8dp"
+            android:paddingHorizontal="14dp"
             android:text="발음 ON"
             android:textSize="13sp" />
 
@@ -37,7 +39,8 @@
             android:id="@+id/btnShuffle"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="42dp"
+            android:paddingHorizontal="14dp"
             android:text="순서섞기"
             android:textSize="13sp" />
     </LinearLayout>
@@ -47,7 +50,7 @@
         android:id="@+id/tvPhaseHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:background="@color/chip_bg"
         android:paddingHorizontal="12dp"
         android:paddingVertical="6dp"
@@ -60,12 +63,12 @@
         android:id="@+id/cardFlash"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginVertical="20dp"
+        android:layout_marginVertical="14dp"
         android:layout_weight="1"
         app:cardBackgroundColor="@color/card_surface"
         app:cardCornerRadius="24dp"
         app:cardElevation="6dp"
-        app:strokeColor="#334155"
+        app:strokeColor="@color/divider_color"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -73,13 +76,13 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="28dp">
+            android:padding="24dp">
 
             <TextView
                 android:id="@+id/tvPartOfSpeech"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="verb / noun"
+                android:text="verb"
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp" />
 
@@ -91,14 +94,14 @@
                 android:gravity="center"
                 android:text="accomplish"
                 android:textColor="@color/text_primary"
-                android:textSize="40sp"
+                android:textSize="38sp"
                 android:textStyle="bold" />
 
             <View
                 android:layout_width="64dp"
                 android:layout_height="2dp"
-                android:layout_marginVertical="24dp"
-                android:background="#334155" />
+                android:layout_marginVertical="20dp"
+                android:background="@color/divider_color" />
 
             <TextView
                 android:id="@+id/tvKoreanMeaning"
@@ -107,14 +110,14 @@
                 android:gravity="center"
                 android:text="성취하다, 완수하다"
                 android:textColor="@color/accent_emerald"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvExample"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:gravity="center"
                 android:text="She accomplished her goal on time."
                 android:textColor="@color/text_secondary"
@@ -123,26 +126,26 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="20dp"
                 android:text="카드를 터치하면 발음 듣기 / 뜻 즉시 확인"
                 android:textColor="#64748B"
                 android:textSize="12sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 속도 선택 영역 -->
+    <!-- 속도 선택 영역 (한 줄 깔끔 표시) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:gravity="center"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:text="깜빡이 속도:"
+            android:layout_marginEnd="8dp"
+            android:text="속도:"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
@@ -150,29 +153,35 @@
             android:id="@+id/btnSpeedFast"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:text="빠름(0.8초)"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="빠름 0.8초"
             android:textSize="12sp" />
 
         <Button
             android:id="@+id/btnSpeedNormal"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:text="보통(1.5초)"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="보통 1.5초"
             android:textSize="12sp" />
 
         <Button
             android:id="@+id/btnSpeedSlow"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:text="느림(2.5초)"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="느림 2.5초"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -180,7 +189,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="10dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -214,7 +223,7 @@
             android:textSize="15sp" />
     </LinearLayout>
 
-    <!-- 하단 단어 추가 및 암기 완료 관리 -->
+    <!-- 하단 단어 추가 및 암기 완료 관리 (시스템 네비게이션 바와 겹치지 않도록 인셋 여백 자동 확보) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -222,22 +231,23 @@
 
         <Button
             android:id="@+id/btnAddWord"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="+ 내 단어 추가"
-            android:textSize="13sp" />
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnMemorized"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="✓ 암기완료 제외"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
     </LinearLayout>
 
 </LinearLayout>
