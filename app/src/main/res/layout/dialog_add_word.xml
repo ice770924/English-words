@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/etEnglish"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="영단어 입력 (예: resilient)"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/etKorean"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="한국어 뜻 입력 (예: 회복력이 있는)"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/etExample"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="예문 입력 (선택 사항)"
+        android:inputType="text" />
+
+</LinearLayout>
