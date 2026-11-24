@@ -20,11 +20,13 @@ import java.util.Locale
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var tvProgress: TextView
+    private lateinit var btnCurrentGroup: Button
     private lateinit var tvPhaseHint: TextView
     private lateinit var tvPartOfSpeech: TextView
     private lateinit var tvEnglishWord: TextView
     private lateinit var tvKoreanMeaning: TextView
     private lateinit var tvExample: TextView
+    private lateinit var tvCardTip: TextView
     private lateinit var cardFlash: MaterialCardView
     private lateinit var btnPlayPause: Button
     private lateinit var btnTtsToggle: Button
@@ -38,7 +40,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var isMeaningShown = true
     private var intervalMs: Long = 1500L
 
-    private var allWords = mutableListOf<VocabItem>()
+    private var currentGroup: WordGroup? = null
+    private var groupWords = mutableListOf<VocabItem>()
     private var activeWords = mutableListOf<VocabItem>()
     private var currentIndex = 0
 
@@ -92,7 +95,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun reloadVocabulary(resetIndex: Boolean) {
-        allWords = VocabStorage.loadWords(this)
+        val group = VocabStorage.getCurrentGroup(this)
+        currentGroup = group
+        groupWords = group.words.toMutableList()
+        btnCurrentGroup.text = "📁 ${group.name} (${groupWords.size}/${VocabStorage.MAX_WORDS_PER_GROUP}) ▼"
         refreshActiveWords()
         if (resetIndex) currentIndex = 0
         renderCurrentWord()
@@ -100,14 +106,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun initViews() {
         tvProgress = findViewById(R.id.tvProgress)
+        btnCurrentGroup = findViewById(R.id.btnCurrentGroup)
         tvPhaseHint = findViewById(R.id.tvPhaseHint)
         tvPartOfSpeech = findViewById(R.id.tvPartOfSpeech)
         tvEnglishWord = findViewById(R.id.tvEnglishWord)
         tvKoreanMeaning = findViewById(R.id.tvKoreanMeaning)
         tvExample = findViewById(R.id.tvExample)
+        tvCardTip = findViewById(R.id.tvCardTip)
         cardFlash = findViewById(R.id.cardFlash)
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnTtsToggle = findViewById(R.id.btnTtsToggle)
+
+        val openGroupManager = View.OnClickListener {
+            if (isPlaying) pauseBlinker()
+            startActivity(Intent(this, GroupManageActivity::class.java))
+        }
+        btnCurrentGroup.setOnClickListener(openGroupManager)
+        findViewById<Button>(R.id.btnManageGroups).setOnClickListener(openGroupManager)
 
         cardFlash.setOnClickListener {
             if (activeWords.isEmpty()) return@setOnClickListener
@@ -119,6 +134,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         btnPlayPause.setOnClickListener {
+            if (activeWords.isEmpty()) {
+                Toast.makeText(this, "현재 그룹에 단어가 없습니다. 먼저 단어를 추가해 주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             if (isPlaying) pauseBlinker() else startBlinker()
         }
 
@@ -146,6 +165,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         findViewById<Button>(R.id.btnShuffle).setOnClickListener {
+            if (activeWords.isEmpty()) return@setOnClickListener
             activeWords.shuffle()
             currentIndex = 0
             isMeaningShown = !isPlaying
@@ -166,7 +186,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (activeWords.isEmpty()) return@setOnClickListener
             val current = activeWords[currentIndex]
             current.memorized = true
-            VocabStorage.saveWords(this, allWords)
+            currentGroup?.let { VocabStorage.updateGroupWords(this, it.id, groupWords) }
             refreshActiveWords()
             renderCurrentWord()
             Toast.makeText(this, "'${current.english}' 암기 완료 처리됨", Toast.LENGTH_SHORT).show()
@@ -206,14 +226,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun renderCurrentWord() {
         if (activeWords.isEmpty()) {
             tvProgress.text = "0 / 0"
-            tvPartOfSpeech.text = "완료"
-            tvEnglishWord.text = "모든 단어 암기 완료!"
+            tvPartOfSpeech.text = "빈 그룹"
+            tvEnglishWord.text = "등록된 단어가 없습니다"
             tvKoreanMeaning.visibility = View.VISIBLE
-            tvKoreanMeaning.text = "새 단어를 추가하거나 초기화하세요"
+            tvKoreanMeaning.text = "아래 '+ 내 단어 추가'로 단어를 등록하세요"
             tvExample.visibility = View.GONE
+            tvCardTip.visibility = View.GONE
+            tvPhaseHint.text = "그룹당 최대 ${VocabStorage.MAX_WORDS_PER_GROUP}개 단어를 등록할 수 있습니다"
             return
         }
 
+        tvCardTip.visibility = View.VISIBLE
         if (currentIndex >= activeWords.size) currentIndex = 0
         val item = activeWords[currentIndex]
 
@@ -252,12 +275,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun refreshActiveWords() {
-        activeWords = allWords.filter { !it.memorized }.toMutableList()
-        if (activeWords.isEmpty() && allWords.isNotEmpty()) {
-            allWords.forEach { it.memorized = false }
-            VocabStorage.saveWords(this, allWords)
-            activeWords = allWords.toMutableList()
-            Toast.makeText(this, "전체 단어를 모두 암기하여 복습 모드로 초기화했습니다!", Toast.LENGTH_LONG).show()
+        activeWords = groupWords.filter { !it.memorized }.toMutableList()
+        if (activeWords.isEmpty() && groupWords.isNotEmpty()) {
+            groupWords.forEach { it.memorized = false }
+            currentGroup?.let { VocabStorage.updateGroupWords(this, it.id, groupWords) }
+            activeWords = groupWords.toMutableList()
+            Toast.makeText(this, "그룹 단어를 모두 암기하여 복습 모드로 초기화했습니다!", Toast.LENGTH_LONG).show()
         }
     }
 

@@ -3,6 +3,7 @@ package com.example.kkamppagienglish
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 data class VocabItem(
     val english: String,
@@ -12,16 +13,218 @@ data class VocabItem(
     var memorized: Boolean = false
 )
 
+data class WordGroup(
+    val id: String,
+    var name: String,
+    val words: MutableList<VocabItem>
+)
+
+data class AddWordsResult(
+    val addedCount: Int,
+    val skippedCount: Int,
+    val isFull: Boolean
+)
+
 object VocabStorage {
+    const val MAX_GROUPS = 30
+    const val MAX_WORDS_PER_GROUP = 30
+
     private const val PREFS_NAME = "kkamppagi_prefs"
-    private const val KEY_VOCAB = "vocab_list"
+    private const val KEY_GROUPS = "vocab_groups_v1"
+    private const val KEY_SELECTED_GROUP_ID = "selected_group_id"
+    private const val KEY_LEGACY_VOCAB = "vocab_list"
 
-    fun loadWords(context: Context): MutableList<VocabItem> {
+    fun loadGroups(context: Context): MutableList<WordGroup> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val savedJson = prefs.getString(KEY_VOCAB, null)
-        val list = mutableListOf<VocabItem>()
+        val savedGroupsJson = prefs.getString(KEY_GROUPS, null)
+        val groups = mutableListOf<WordGroup>()
 
+        if (savedGroupsJson != null) {
+            val arr = JSONArray(savedGroupsJson)
+            for (i in 0 until arr.length()) {
+                val gObj = arr.getJSONObject(i)
+                val id = gObj.getString("id")
+                val name = gObj.getString("name")
+                val wordsArr = gObj.getJSONArray("words")
+                val words = mutableListOf<VocabItem>()
+                for (j in 0 until minOf(wordsArr.length(), MAX_WORDS_PER_GROUP)) {
+                    val wObj = wordsArr.getJSONObject(j)
+                    words.add(
+                        VocabItem(
+                            english = wObj.getString("english"),
+                            korean = wObj.getString("korean"),
+                            pos = wObj.optString("pos", "word"),
+                            example = wObj.optString("example", ""),
+                            memorized = wObj.optBoolean("memorized", false)
+                        )
+                    )
+                }
+                groups.add(WordGroup(id = id, name = name, words = words))
+            }
+        }
+
+        if (groups.isEmpty()) {
+            // 기존 단일 단어장 데이터가 있다면 1번 그룹으로 자동 이관, 없으면 기본 30단어 세팅
+            val initialWords = loadLegacyWordsOrDefault(context)
+            val chunks = initialWords.chunked(MAX_WORDS_PER_GROUP).take(MAX_GROUPS)
+            if (chunks.isEmpty()) {
+                groups.add(
+                    WordGroup(
+                        id = UUID.randomUUID().toString(),
+                        name = "1번 그룹",
+                        words = mutableListOf()
+                    )
+                )
+            } else {
+                chunks.forEachIndexed { idx, chunk ->
+                    groups.add(
+                        WordGroup(
+                            id = UUID.randomUUID().toString(),
+                            name = "${idx + 1}번 그룹",
+                            words = chunk.toMutableList()
+                        )
+                    )
+                }
+            }
+            saveGroups(context, groups)
+            setSelectedGroupId(context, groups.first().id)
+        }
+
+        return groups
+    }
+
+    fun saveGroups(context: Context, groups: List<WordGroup>) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val arr = JSONArray()
+        for (group in groups.take(MAX_GROUPS)) {
+            val gObj = JSONObject()
+            gObj.put("id", group.id)
+            gObj.put("name", group.name)
+            val wordsArr = JSONArray()
+            for (item in group.words.take(MAX_WORDS_PER_GROUP)) {
+                val wObj = JSONObject()
+                wObj.put("english", item.english)
+                wObj.put("korean", item.korean)
+                wObj.put("pos", item.pos)
+                wObj.put("example", item.example)
+                wObj.put("memorized", item.memorized)
+                wordsArr.put(wObj)
+            }
+            gObj.put("words", wordsArr)
+            arr.put(gObj)
+        }
+        prefs.edit().putString(KEY_GROUPS, arr.toString()).apply()
+    }
+
+    fun getSelectedGroupId(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val groups = loadGroups(context)
+        val savedId = prefs.getString(KEY_SELECTED_GROUP_ID, null)
+        if (savedId != null && groups.any { it.id == savedId }) {
+            return savedId
+        }
+        val firstId = groups.first().id
+        setSelectedGroupId(context, firstId)
+        return firstId
+    }
+
+    fun setSelectedGroupId(context: Context, groupId: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_SELECTED_GROUP_ID, groupId).apply()
+    }
+
+    fun getCurrentGroup(context: Context): WordGroup {
+        val groups = loadGroups(context)
+        val selectedId = getSelectedGroupId(context)
+        return groups.firstOrNull { it.id == selectedId } ?: groups.first()
+    }
+
+    fun createGroup(context: Context, rawName: String): WordGroup? {
+        val groups = loadGroups(context)
+        if (groups.size >= MAX_GROUPS) return null
+        val finalName = rawName.trim().ifEmpty { "${groups.size + 1}번 그룹" }
+        val newGroup = WordGroup(
+            id = UUID.randomUUID().toString(),
+            name = finalName,
+            words = mutableListOf()
+        )
+        groups.add(newGroup)
+        saveGroups(context, groups)
+        setSelectedGroupId(context, newGroup.id)
+        return newGroup
+    }
+
+    fun renameGroup(context: Context, groupId: String, newName: String): Boolean {
+        val cleanName = newName.trim()
+        if (cleanName.isEmpty()) return false
+        val groups = loadGroups(context)
+        val target = groups.firstOrNull { it.id == groupId } ?: return false
+        target.name = cleanName
+        saveGroups(context, groups)
+        return true
+    }
+
+    fun deleteGroup(context: Context, groupId: String) {
+        val groups = loadGroups(context)
+        val removed = groups.removeAll { it.id == groupId }
+        if (!removed) return
+
+        if (groups.isEmpty()) {
+            val fallback = WordGroup(
+                id = UUID.randomUUID().toString(),
+                name = "1번 그룹",
+                words = mutableListOf()
+            )
+            groups.add(fallback)
+            saveGroups(context, groups)
+            setSelectedGroupId(context, fallback.id)
+            return
+        }
+
+        saveGroups(context, groups)
+        val currentSelected = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_SELECTED_GROUP_ID, null)
+        if (currentSelected == groupId || groups.none { it.id == currentSelected }) {
+            setSelectedGroupId(context, groups.first().id)
+        }
+    }
+
+    fun updateGroupWords(context: Context, groupId: String, updatedWords: List<VocabItem>) {
+        val groups = loadGroups(context)
+        val target = groups.firstOrNull { it.id == groupId } ?: return
+        target.words.clear()
+        target.words.addAll(updatedWords.take(MAX_WORDS_PER_GROUP))
+        saveGroups(context, groups)
+    }
+
+    fun prependWordsToCurrentGroup(context: Context, newItems: List<VocabItem>): AddWordsResult {
+        if (newItems.isEmpty()) return AddWordsResult(0, 0, false)
+        val groups = loadGroups(context)
+        val selectedId = getSelectedGroupId(context)
+        val target = groups.firstOrNull { it.id == selectedId } ?: groups.first()
+
+        val remaining = MAX_WORDS_PER_GROUP - target.words.size
+        if (remaining <= 0) {
+            return AddWordsResult(addedCount = 0, skippedCount = newItems.size, isFull = true)
+        }
+
+        val toAdd = newItems.take(remaining)
+        val skipped = newItems.size - toAdd.size
+        target.words.addAll(0, toAdd)
+        saveGroups(context, groups)
+
+        return AddWordsResult(
+            addedCount = toAdd.size,
+            skippedCount = skipped,
+            isFull = target.words.size >= MAX_WORDS_PER_GROUP
+        )
+    }
+
+    private fun loadLegacyWordsOrDefault(context: Context): List<VocabItem> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val savedJson = prefs.getString(KEY_LEGACY_VOCAB, null)
         if (savedJson != null) {
+            val list = mutableListOf<VocabItem>()
             val arr = JSONArray(savedJson)
             for (i in 0 until arr.length()) {
                 val obj = arr.getJSONObject(i)
@@ -35,33 +238,9 @@ object VocabStorage {
                     )
                 )
             }
-        } else {
-            list.addAll(defaultVocabulary())
-            saveWords(context, list)
+            if (list.isNotEmpty()) return list
         }
-        return list
-    }
-
-    fun saveWords(context: Context, words: List<VocabItem>) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val arr = JSONArray()
-        for (item in words) {
-            val obj = JSONObject()
-            obj.put("english", item.english)
-            obj.put("korean", item.korean)
-            obj.put("pos", item.pos)
-            obj.put("example", item.example)
-            obj.put("memorized", item.memorized)
-            arr.put(obj)
-        }
-        prefs.edit().putString(KEY_VOCAB, arr.toString()).apply()
-    }
-
-    fun prependWords(context: Context, newItems: List<VocabItem>) {
-        if (newItems.isEmpty()) return
-        val current = loadWords(context)
-        current.addAll(0, newItems)
-        saveWords(context, current)
+        return defaultVocabulary()
     }
 
     private fun defaultVocabulary(): List<VocabItem> = listOf(

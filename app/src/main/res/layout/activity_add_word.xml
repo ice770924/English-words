@@ -39,6 +39,41 @@
             android:layout_height="1dp" />
     </LinearLayout>
 
+    <!-- 현재 저장 대상 그룹 및 잔여 슬롯 표시 배너 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@color/chip_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/tvTargetGroupInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="대상 그룹: 1번 그룹 (30 / 30단어)"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnSwitchGroupFromAdd"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="0dp"
+            android:text="그룹 변경/추가 ›"
+            android:textColor="@color/accent_blue"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayoutMode"
         android:layout_width="match_parent"
@@ -169,7 +204,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- 2번 영역: 카메라 사진 스캔 섹션 (전체 스크롤로 키보드 가림 방지) -->
+    <!-- 2번 영역: 카메라 사진 스캔 섹션 -->
     <LinearLayout
         android:id="@+id/sectionCamera"
         android:layout_width="match_parent"

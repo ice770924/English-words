@@ -1,6 +1,7 @@
 package com.example.kkamppagienglish
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.net.Uri
@@ -32,6 +33,7 @@ import java.util.Locale
 
 class AddWordActivity : AppCompatActivity() {
 
+    private lateinit var tvTargetGroupInfo: TextView
     private lateinit var sectionManual: ScrollView
     private lateinit var sectionCamera: LinearLayout
     private lateinit var scrollCameraContent: ScrollView
@@ -81,6 +83,25 @@ class AddWordActivity : AppCompatActivity() {
 
         initViews()
         applySystemBarInsets()
+        updateTargetGroupBanner()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateTargetGroupBanner()
+    }
+
+    private fun updateTargetGroupBanner() {
+        val group = VocabStorage.getCurrentGroup(this)
+        val count = group.words.size
+        val max = VocabStorage.MAX_WORDS_PER_GROUP
+        if (count >= max) {
+            tvTargetGroupInfo.text = "${group.name} ($count/$max 가득 참) · 새 그룹을 추가하세요"
+            tvTargetGroupInfo.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
+        } else {
+            tvTargetGroupInfo.text = "대상 그룹: ${group.name} ($count / $max단어 · ${max - count}개 가능)"
+            tvTargetGroupInfo.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        }
     }
 
     private fun applySystemBarInsets() {
@@ -98,7 +119,6 @@ class AddWordActivity : AppCompatActivity() {
                 basePaddingPx + maxOf(sysBars.bottom, imeInsets.bottom)
             )
 
-            // 키보드가 올라왔을 때는 입력창 가림을 막기 위해 하단 일괄추가 버튼과 사진 미리보기를 잠시 접음
             if (sectionCamera.visibility == View.VISIBLE) {
                 if (isKeyboardOpen) {
                     btnSaveScanned.visibility = View.GONE
@@ -127,6 +147,7 @@ class AddWordActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        tvTargetGroupInfo = findViewById(R.id.tvTargetGroupInfo)
         sectionManual = findViewById(R.id.sectionManual)
         sectionCamera = findViewById(R.id.sectionCamera)
         scrollCameraContent = findViewById(R.id.scrollCameraContent)
@@ -136,6 +157,10 @@ class AddWordActivity : AppCompatActivity() {
         btnSaveScanned = findViewById(R.id.btnSaveScanned)
 
         findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
+
+        findViewById<Button>(R.id.btnSwitchGroupFromAdd).setOnClickListener {
+            startActivity(Intent(this, GroupManageActivity::class.java))
+        }
 
         val tabLayout = findViewById<TabLayout>(R.id.tabLayoutMode)
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -166,10 +191,20 @@ class AddWordActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            VocabStorage.prependWords(
+            val result = VocabStorage.prependWordsToCurrentGroup(
                 this,
                 listOf(VocabItem(eng, kor, "custom", ex, false))
             )
+
+            if (result.addedCount == 0) {
+                Toast.makeText(
+                    this,
+                    "그룹당 최대 ${VocabStorage.MAX_WORDS_PER_GROUP}개까지만 등록할 수 있습니다. 새 그룹을 만들어 주세요.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
             Toast.makeText(this, "'$eng' 단어가 추가되었습니다!", Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -212,8 +247,29 @@ class AddWordActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            VocabStorage.prependWords(this, itemsToAdd.reversed())
-            Toast.makeText(this, "${itemsToAdd.size}개의 영단어가 단어장에 추가되었습니다!", Toast.LENGTH_SHORT).show()
+            val result = VocabStorage.prependWordsToCurrentGroup(this, itemsToAdd.reversed())
+            if (result.addedCount == 0) {
+                Toast.makeText(
+                    this,
+                    "현재 그룹이 가득 찼습니다(최대 ${VocabStorage.MAX_WORDS_PER_GROUP}개). 새 그룹을 만들어 추가해 주세요.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (result.skippedCount > 0) {
+                Toast.makeText(
+                    this,
+                    "그룹당 ${VocabStorage.MAX_WORDS_PER_GROUP}개 제한으로 ${result.addedCount}개만 추가되었습니다. (${result.skippedCount}개 제외)",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    "${result.addedCount}개의 영단어가 그룹에 추가되었습니다!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             finish()
         }
     }
@@ -278,14 +334,12 @@ class AddWordActivity : AppCompatActivity() {
             val etKor = row.findViewById<EditText>(R.id.etScannedKorean)
             etEng.setText(word)
 
-            // 마지막 단어 입력창에서는 키보드 완료(Done) 표시, 그 외에는 다음(Next) 단어로 이동
             etKor.imeOptions = if (index == words.lastIndex) {
                 EditorInfo.IME_ACTION_DONE
             } else {
                 EditorInfo.IME_ACTION_NEXT
             }
 
-            // 입력창을 터치하거나 다음 버튼으로 이동할 때마다 화면 안쪽으로 자동 스크롤
             val focusListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     scrollCameraContent.postDelayed({

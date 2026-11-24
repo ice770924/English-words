@@ -8,6 +8,7 @@
     android:orientation="vertical"
     android:padding="18dp">
 
+    <!-- 상단 1행: 진행률 + 발음/순서섞기 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -28,9 +29,9 @@
             android:id="@+id/btnTtsToggle"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="42dp"
-            android:layout_marginEnd="8dp"
-            android:paddingHorizontal="14dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:paddingHorizontal="12dp"
             android:text="발음 ON"
             android:textSize="13sp" />
 
@@ -38,29 +39,66 @@
             android:id="@+id/btnShuffle"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
-            android:layout_height="42dp"
-            android:paddingHorizontal="14dp"
+            android:layout_height="40dp"
+            android:paddingHorizontal="12dp"
             android:text="순서섞기"
             android:textSize="13sp" />
     </LinearLayout>
 
+    <!-- 상단 2행: 현재 단어 그룹 선택 및 그룹 관리 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCurrentGroup"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:maxLines="1"
+            android:paddingHorizontal="14dp"
+            android:text="📁 1번 그룹 (30/30) ▼"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnManageGroups"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:paddingHorizontal="12dp"
+            android:text="그룹 관리"
+            android:textColor="@color/accent_blue"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 깜빡이 단계 안내 배지 -->
     <TextView
         android:id="@+id/tvPhaseHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:background="@color/chip_bg"
         android:paddingHorizontal="12dp"
-        android:paddingVertical="6dp"
+        android:paddingVertical="5dp"
         android:text="깜빡이 모드: 영단어 → 뜻 자동 전환"
         android:textColor="@color/text_secondary"
-        android:textSize="13sp" />
+        android:textSize="12sp" />
 
+    <!-- 중앙 플래시카드 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardFlash"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginVertical="14dp"
+        android:layout_marginVertical="12dp"
         android:layout_weight="1"
         app:cardBackgroundColor="@color/card_surface"
         app:cardCornerRadius="24dp"
@@ -73,7 +111,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="22dp">
 
             <TextView
                 android:id="@+id/tvPartOfSpeech"
@@ -91,13 +129,13 @@
                 android:gravity="center"
                 android:text="accomplish"
                 android:textColor="@color/text_primary"
-                android:textSize="38sp"
+                android:textSize="36sp"
                 android:textStyle="bold" />
 
             <View
                 android:layout_width="64dp"
                 android:layout_height="2dp"
-                android:layout_marginVertical="20dp"
+                android:layout_marginVertical="18dp"
                 android:background="@color/divider_color" />
 
             <TextView
@@ -107,33 +145,35 @@
                 android:gravity="center"
                 android:text="성취하다, 완수하다"
                 android:textColor="@color/accent_emerald"
-                android:textSize="26sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvExample"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="She accomplished her goal on time."
                 android:textColor="@color/text_secondary"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/tvCardTip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:text="카드를 터치하면 발음 듣기 / 뜻 즉시 확인"
                 android:textColor="#64748B"
                 android:textSize="12sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- 속도 선택 영역 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -149,7 +189,7 @@
             android:id="@+id/btnSpeedFast"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="42dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:maxLines="1"
@@ -161,7 +201,7 @@
             android:id="@+id/btnSpeedNormal"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="42dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:maxLines="1"
@@ -173,7 +213,7 @@
             android:id="@+id/btnSpeedSlow"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="42dp"
             android:layout_weight="1"
             android:maxLines="1"
             android:paddingHorizontal="4dp"
@@ -181,10 +221,11 @@
             android:textSize="12sp" />
     </LinearLayout>
 
+    <!-- 재생 컨트롤 버튼 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -192,7 +233,7 @@
             android:id="@+id/btnPrev"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="◀ 이전"
@@ -201,7 +242,7 @@
         <Button
             android:id="@+id/btnPlayPause"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1.4"
             android:text="▶ 깜빡이 시작"
@@ -212,12 +253,13 @@
             android:id="@+id/btnNext"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="50dp"
             android:layout_weight="1"
             android:text="다음 ▶"
             android:textSize="15sp" />
     </LinearLayout>
 
+    <!-- 하단 단어 추가 및 암기 완료 관리 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
