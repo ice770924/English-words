@@ -8,7 +8,6 @@
     android:orientation="vertical"
     android:padding="18dp">
 
-    <!-- 상단 바 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,7 +39,6 @@
             android:layout_height="1dp" />
     </LinearLayout>
 
-    <!-- 입력 방식 전환 탭 (직접 입력 vs 카메라 사진 스캔) -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayoutMode"
         android:layout_width="match_parent"
@@ -63,7 +61,6 @@
             android:text="📷 카메라로 찍어 추가" />
     </com.google.android.material.tabs.TabLayout>
 
-    <!-- 1번 영역: 직접 입력 섹션 -->
     <ScrollView
         android:id="@+id/sectionManual"
         android:layout_width="match_parent"
@@ -164,7 +161,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- 2번 영역: 카메라 사진 스캔 섹션 -->
     <LinearLayout
         android:id="@+id/sectionCamera"
         android:layout_width="match_parent"

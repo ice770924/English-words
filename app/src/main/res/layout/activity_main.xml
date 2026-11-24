@@ -8,7 +8,6 @@
     android:orientation="vertical"
     android:padding="18dp">
 
-    <!-- 상단 헤더: 진행률 및 옵션 버튼 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -45,7 +44,6 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- 깜빡이 모드 안내 배지 -->
     <TextView
         android:id="@+id/tvPhaseHint"
         android:layout_width="wrap_content"
@@ -58,7 +56,6 @@
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
-    <!-- 중앙 플래시카드 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardFlash"
         android:layout_width="match_parent"
@@ -133,7 +130,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 속도 선택 영역 (한 줄 깔끔 표시) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -185,7 +181,6 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- 재생 컨트롤 버튼 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -223,7 +218,6 @@
             android:textSize="15sp" />
     </LinearLayout>
 
-    <!-- 하단 단어 추가 및 암기 완료 관리 (시스템 네비게이션 바와 겹치지 않도록 인셋 여백 자동 확보) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

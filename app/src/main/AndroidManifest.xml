@@ -6,7 +6,6 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <!-- Android 11 (API 30) 이상에서 시스템 TTS 엔진 조회를 위한 필수 선언 -->
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />

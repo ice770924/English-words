@@ -26,6 +26,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
+import java.util.Locale
 
 class AddWordActivity : AppCompatActivity() {
 
@@ -118,7 +119,6 @@ class AddWordActivity : AppCompatActivity() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
 
-        // 1. 직접 입력 저장
         val etEnglish = findViewById<EditText>(R.id.etEnglish)
         val etKorean = findViewById<EditText>(R.id.etKorean)
         val etExample = findViewById<EditText>(R.id.etExample)
@@ -141,7 +141,6 @@ class AddWordActivity : AppCompatActivity() {
             finish()
         }
 
-        // 2. 카메라 촬영 및 앨범 선택
         findViewById<Button>(R.id.btnTakePhoto).setOnClickListener {
             val granted = ContextCompat.checkSelfPermission(
                 this,
@@ -227,7 +226,6 @@ class AddWordActivity : AppCompatActivity() {
     }
 
     private fun extractEnglishWords(rawText: String): List<String> {
-        // 알파벳 2글자 이상 영단어 추출 및 중복 제거
         val regex = Regex("[A-Za-z]{2,}")
         val seen = LinkedHashSet<String>()
         for (match in regex.findAll(rawText)) {

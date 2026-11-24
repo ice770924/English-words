@@ -62,7 +62,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 상단 상태바 및 하단 시스템 네비게이션 바와 앱 버튼이 겹치지 않도록 안전 영역(WindowInsets) 적용
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
 
@@ -74,7 +73,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-        // 단어 추가 화면에서 돌아왔을 때 새로 추가된 단어 즉시 반영
         reloadVocabulary(resetIndex = true)
     }
 
