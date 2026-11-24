@@ -2,10 +2,12 @@ package com.example.kkamppagienglish
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -32,12 +34,14 @@ class AddWordActivity : AppCompatActivity() {
 
     private lateinit var sectionManual: ScrollView
     private lateinit var sectionCamera: LinearLayout
+    private lateinit var scrollCameraContent: ScrollView
     private lateinit var tvScanStatus: TextView
     private lateinit var ivPreview: ImageView
     private lateinit var containerScannedWords: LinearLayout
     private lateinit var btnSaveScanned: Button
 
     private var currentPhotoUri: Uri? = null
+    private var hasPreviewImage = false
     private val scannedRowViews = mutableListOf<View>()
 
     private val requestCameraPermission =
@@ -53,6 +57,7 @@ class AddWordActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             val uri = currentPhotoUri
             if (success && uri != null) {
+                hasPreviewImage = true
                 ivPreview.visibility = View.VISIBLE
                 ivPreview.setImageURI(uri)
                 processImageWithMlKit(uri)
@@ -62,6 +67,7 @@ class AddWordActivity : AppCompatActivity() {
     private val pickGalleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
+                hasPreviewImage = true
                 ivPreview.visibility = View.VISIBLE
                 ivPreview.setImageURI(uri)
                 processImageWithMlKit(uri)
@@ -73,30 +79,57 @@ class AddWordActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_add_word)
 
-        applySystemBarInsets()
         initViews()
+        applySystemBarInsets()
     }
 
     private fun applySystemBarInsets() {
         val rootView = findViewById<LinearLayout>(R.id.rootAddWord)
         val basePaddingPx = (18 * resources.displayMetrics.density).toInt()
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, windowInsets ->
-            val insets = windowInsets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()
-            )
+            val sysBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            val isKeyboardOpen = imeInsets.bottom > sysBars.bottom
+
             view.setPadding(
-                basePaddingPx + insets.left,
-                basePaddingPx + insets.top,
-                basePaddingPx + insets.right,
-                basePaddingPx + insets.bottom
+                basePaddingPx + sysBars.left,
+                basePaddingPx + sysBars.top,
+                basePaddingPx + sysBars.right,
+                basePaddingPx + maxOf(sysBars.bottom, imeInsets.bottom)
             )
+
+            // 키보드가 올라왔을 때는 입력창 가림을 막기 위해 하단 일괄추가 버튼과 사진 미리보기를 잠시 접음
+            if (sectionCamera.visibility == View.VISIBLE) {
+                if (isKeyboardOpen) {
+                    btnSaveScanned.visibility = View.GONE
+                    ivPreview.visibility = View.GONE
+                    scrollFocusedFieldIntoView()
+                } else {
+                    if (scannedRowViews.isNotEmpty()) {
+                        btnSaveScanned.visibility = View.VISIBLE
+                    }
+                    if (hasPreviewImage) {
+                        ivPreview.visibility = View.VISIBLE
+                    }
+                }
+            }
+
             WindowInsetsCompat.CONSUMED
+        }
+    }
+
+    private fun scrollFocusedFieldIntoView() {
+        val focused = currentFocus ?: return
+        scrollCameraContent.post {
+            val rect = Rect(0, 0, focused.width, focused.height)
+            focused.requestRectangleOnScreen(rect, false)
         }
     }
 
     private fun initViews() {
         sectionManual = findViewById(R.id.sectionManual)
         sectionCamera = findViewById(R.id.sectionCamera)
+        scrollCameraContent = findViewById(R.id.scrollCameraContent)
         tvScanStatus = findViewById(R.id.tvScanStatus)
         ivPreview = findViewById(R.id.ivPreview)
         containerScannedWords = findViewById(R.id.containerScannedWords)
@@ -213,7 +246,7 @@ class AddWordActivity : AppCompatActivity() {
                     if (extractedWords.isEmpty()) {
                         tvScanStatus.text = "영단어를 찾지 못했습니다. 글자가 선명하게 보이도록 다시 촬영해 주세요."
                     } else {
-                        tvScanStatus.text = "총 ${extractedWords.size}개의 영단어를 찾았습니다. 원하는 단어의 뜻을 입력하고 추가하세요."
+                        tvScanStatus.text = "총 ${extractedWords.size}개의 영단어를 찾았습니다. 뜻을 입력한 뒤 키보드를 내리면 일괄 추가 버튼이 나타납니다."
                         populateScannedWords(extractedWords)
                     }
                 }
@@ -239,10 +272,31 @@ class AddWordActivity : AppCompatActivity() {
 
     private fun populateScannedWords(words: List<String>) {
         val inflater = LayoutInflater.from(this)
-        for (word in words) {
+        for ((index, word) in words.withIndex()) {
             val row = inflater.inflate(R.layout.item_scanned_word, containerScannedWords, false)
             val etEng = row.findViewById<EditText>(R.id.etScannedEnglish)
+            val etKor = row.findViewById<EditText>(R.id.etScannedKorean)
             etEng.setText(word)
+
+            // 마지막 단어 입력창에서는 키보드 완료(Done) 표시, 그 외에는 다음(Next) 단어로 이동
+            etKor.imeOptions = if (index == words.lastIndex) {
+                EditorInfo.IME_ACTION_DONE
+            } else {
+                EditorInfo.IME_ACTION_NEXT
+            }
+
+            // 입력창을 터치하거나 다음 버튼으로 이동할 때마다 화면 안쪽으로 자동 스크롤
+            val focusListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    scrollCameraContent.postDelayed({
+                        val rect = Rect(0, 0, v.width, v.height)
+                        v.requestRectangleOnScreen(rect, false)
+                    }, 150)
+                }
+            }
+            etEng.onFocusChangeListener = focusListener
+            etKor.onFocusChangeListener = focusListener
+
             containerScannedWords.addView(row)
             scannedRowViews.add(row)
         }
