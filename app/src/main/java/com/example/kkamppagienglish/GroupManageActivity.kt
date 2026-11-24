@@ -116,19 +116,16 @@ class GroupManageActivity : AppCompatActivity() {
                 card.strokeWidth = (1 * resources.displayMetrics.density).toInt()
             }
 
-            // 그룹 카드 터치 시 해당 그룹으로 전환 후 메인 화면 복귀
             card.setOnClickListener {
                 VocabStorage.setSelectedGroupId(this, group.id)
                 Toast.makeText(this, "'${group.name}' 그룹을 선택했습니다.", Toast.LENGTH_SHORT).show()
                 finish()
             }
 
-            // 그룹 이름 수정
             btnRename.setOnClickListener {
                 showRenameDialog(group)
             }
 
-            // 그룹 삭제
             btnDelete.setOnClickListener {
                 showDeleteDialog(group)
             }

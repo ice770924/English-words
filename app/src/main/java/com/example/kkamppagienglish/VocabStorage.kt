@@ -64,7 +64,6 @@ object VocabStorage {
         }
 
         if (groups.isEmpty()) {
-            // 기존 단일 단어장 데이터가 있다면 1번 그룹으로 자동 이관, 없으면 기본 30단어 세팅
             val initialWords = loadLegacyWordsOrDefault(context)
             val chunks = initialWords.chunked(MAX_WORDS_PER_GROUP).take(MAX_GROUPS)
             if (chunks.isEmpty()) {

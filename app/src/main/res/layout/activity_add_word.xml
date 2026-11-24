@@ -39,7 +39,6 @@
             android:layout_height="1dp" />
     </LinearLayout>
 
-    <!-- 현재 저장 대상 그룹 및 잔여 슬롯 표시 배너 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -96,7 +95,6 @@
             android:text="📷 카메라로 찍어 추가" />
     </com.google.android.material.tabs.TabLayout>
 
-    <!-- 1번 영역: 직접 입력 섹션 -->
     <ScrollView
         android:id="@+id/sectionManual"
         android:layout_width="match_parent"
@@ -204,7 +202,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- 2번 영역: 카메라 사진 스캔 섹션 -->
     <LinearLayout
         android:id="@+id/sectionCamera"
         android:layout_width="match_parent"

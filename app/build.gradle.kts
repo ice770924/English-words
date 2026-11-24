@@ -15,26 +15,13 @@ android {
         versionName = "1.3.0"
     }
 
-    signingConfigs {
-        create("fixedDebug") {
-            storeFile = file("kkamppagi.keystore")
-            storePassword = "android123"
-            keyAlias = "kkamppagi"
-            keyPassword = "android123"
-        }
-    }
-
     buildTypes {
-        debug {
-            signingConfig = signingConfigs.getByName("fixedDebug")
-        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("fixedDebug")
         }
     }
 
